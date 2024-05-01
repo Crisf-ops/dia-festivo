@@ -1,4 +1,4 @@
-package com.festivos.ec.decirdiasfestivos.dominio.entidades.dto;
+package com.festivos.ec.decirdiasfestivos.entidades.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
