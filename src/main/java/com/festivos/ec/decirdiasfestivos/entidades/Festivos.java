@@ -1,4 +1,4 @@
-package com.festivos.ec.decirdiasfestivos.dominio.entidades;
+package com.festivos.ec.decirdiasfestivos.entidades;
 
 import jakarta.persistence.*;
 import lombok.Getter;

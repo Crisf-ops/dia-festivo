@@ -9,7 +9,8 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ResponseCalculate {
-    String mes;
-    String dia;
+public class HolidayDTO {
+    private String dia;
+    private String mes;
+    private String nombre;
 }

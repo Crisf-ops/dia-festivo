@@ -1,55 +1,81 @@
 package com.festivos.ec.decirdiasfestivos.utils;
 
-import com.festivos.ec.decirdiasfestivos.dominio.entidades.dto.ResponseCalculate;
-import lombok.Getter;
+import com.festivos.ec.decirdiasfestivos.entidades.dto.ResponseCalculate;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
-@Getter
+@Component
 public class HolidayUtil {
-    private int year;
-    private int easterMonth;
-    private int easterDay;
-    private List<ResponseCalculate> holidays;
+    int year;
+    int easterMonth;
+    int easterDay;
+    List<ResponseCalculate> holidays;
 
-    public HolidayUtil(int year) {
-        this.year = year;
-        this.holidays = new ArrayList<>();
-        int a = year % 19;
-        int b = year / 100;
-        int c = year % 100;
-        int d = b / 4;
-        int e = b % 4;
-        int g = (8 * b + 13) / 25;
-        int h = (19 * a + b - d - g + 15) % 30;
-        int j = c / 4;
-        int k = c % 4;
-        int m = (a + 11 * h) / 319;
-        int r = (2 * e + 2 * j - k - h + m + 32) % 7;
-        this.easterMonth = (h - m + r + 90) / 25;
-        this.easterDay = (h - m + r + this.easterMonth + 19) % 32;
-        this.easterMonth--;
-        this.holidays.add(new ResponseCalculate("0","1"));
-        this.holidays.add(new ResponseCalculate("4","1"));
-        this.holidays.add(new ResponseCalculate("6", "20"));
-        this.holidays.add(new ResponseCalculate("7","7"));
-        this.holidays.add(new ResponseCalculate("11","8"));
-        this.holidays.add(new ResponseCalculate("11","25"));
-        this.calculateEmiliani(0, 6);
-        this.calculateEmiliani(2, 19);
-        this.calculateEmiliani(5, 29);
-        this.calculateEmiliani(7, 15);
-        this.calculateEmiliani(9, 12);
-        this.calculateEmiliani(10, 1);
-        this.calculateEmiliani(10, 11);
-        this.calculateOtherHoliday(-3, false);
-        this.calculateOtherHoliday(-2, false);
-        this.calculateOtherHoliday(40, true);
-        this.calculateOtherHoliday(60, true);
-        this.calculateOtherHoliday(68, true);
+    private void calculateEaster() {
+        int goldenNumber = getGoldenNumber(year);
+        int century = getCentury(year);
+        int skippedLeapYears = getSkippedLeapYears(century);
+        int correctionFactor = getCorrectionFactor(century);
+        int solarCorrection = getSolarCorrection(goldenNumber, century, skippedLeapYears, correctionFactor);
+        int lunarCorrection = getLunarCorrection(year);
+        int epact = getEpact(goldenNumber, solarCorrection);
+        int weekdayCorrection = getWeekdayCorrection(year, lunarCorrection, epact);
+        this.easterMonth = getEasterMonth(epact, weekdayCorrection) - 1;  // Ajustar para índice de mes basado en 0
+        this.easterDay = getEasterDay(epact, weekdayCorrection, easterMonth);
+    }
+
+    private int getGoldenNumber(int year) { return year % 19; }
+    private int getCentury(int year) { return year / 100; }
+    private int getSkippedLeapYears(int century) { return century / 4; }
+    private int getCorrectionFactor(int century) { return (8 * century + 13) / 25; }
+    private int getLunarCorrection(int year) { return (year % 100) / 4; }
+    private int getEasterMonth(int epact, int weekdayCorrection) { return (epact + weekdayCorrection + 90) / 25; }
+
+    private int getSolarCorrection(int goldenNumber, int century, int skippedLeapYears, int correctionFactor) {
+        return (19 * goldenNumber + century - skippedLeapYears - correctionFactor + 15) % 30;
+    }
+
+    private int getEpact(int goldenNumber, int solarCorrection) {
+        return solarCorrection - ((goldenNumber + 11 * solarCorrection) / 319);
+    }
+
+    private int getWeekdayCorrection(int year, int lunarCorrection, int epact) {
+        int yearMod100 = year % 100;
+        return (2 * (yearMod100 % 4) + 2 * lunarCorrection - (yearMod100 % 4) - epact + 32) % 7;
+    }
+
+    private int getEasterDay(int epact, int weekdayCorrection, int easterMonth) {
+        return (epact + weekdayCorrection + easterMonth + 19) % 32;
+    }
+
+    private void addFixedHolidays() {
+        holidays.add(new ResponseCalculate("1", "1"));  // Año Nuevo
+        holidays.add(new ResponseCalculate("5", "1"));  // Día del Trabajo
+        holidays.add(new ResponseCalculate("7", "20")); // Día de la Independencia
+        holidays.add(new ResponseCalculate("8", "7"));  // Batalla de Boyacá
+        holidays.add(new ResponseCalculate("12", "8")); // Inmaculada Concepción
+        holidays.add(new ResponseCalculate("12", "25")); // Navidad
+    }
+
+    private void addEmilianiHolidays() {
+        calculateEmiliani(0, 6);  // Día de los Reyes Magos
+        calculateEmiliani(2, 19); // San José
+        calculateEmiliani(5, 29); // San Pedro y San Pablo
+        calculateEmiliani(7, 15); // Asunción de la Virgen
+        calculateEmiliani(9, 12); // Día de la Raza
+        calculateEmiliani(11, 1); // Todos los Santos
+        calculateEmiliani(11, 11); // Independencia de Cartagena
+    }
+
+    private void addVariableHolidays() {
+        calculateOtherHoliday(-3, false); // Jueves Santo
+        calculateOtherHoliday(-2, false); // Viernes Santo
+        calculateOtherHoliday(40, true);  // Ascensión del Señor
+        calculateOtherHoliday(60, true);  // Corpus Christi
+        calculateOtherHoliday(68, true);  // Sagrado Corazón
     }
 
     private void calculateEmiliani(int month, int day) {
@@ -90,5 +116,15 @@ public class HolidayUtil {
         } else {
             this.holidays.add(new ResponseCalculate(String.valueOf(date.get(Calendar.MONTH)) , String.valueOf( date.get(Calendar.DATE))));
         }
+    }
+
+    public List<ResponseCalculate> getHolidays(int year) {
+        this.year = year;
+        this.holidays = new ArrayList<>();
+        calculateEaster();
+        addFixedHolidays();
+        addEmilianiHolidays();
+        addVariableHolidays();
+        return this.holidays;
     }
 }
