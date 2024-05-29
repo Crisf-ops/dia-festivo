@@ -8,14 +8,12 @@ import com.festivos.ec.decirdiasfestivos.entidades.dto.HolidayDTO;
 import com.festivos.ec.decirdiasfestivos.entidades.dto.ResponseCalculate;
 import com.festivos.ec.decirdiasfestivos.utils.HolidayUtil;
 import com.festivos.ec.decirdiasfestivos.utils.TriPredicate;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BiPredicate;
-import java.util.function.Predicate;
 
 
 @Service
@@ -26,7 +24,6 @@ public class DiaFestivoServicio implements IDiaFestivo {
     HolidayUtil holidayUtil;
     private static final String MENSAJE_DIA_FESTIVO_NO_ENCONTRADO = "Si se pudo, es dia festivo";
 
-    @Autowired
     public DiaFestivoServicio ( TipoRepositorio tipoRepositorio, FestivoRepositorio festivoRepositorio, HolidayUtil holidayUtil) {
         this.tipoRepositorio = tipoRepositorio;
         this.festivoRepositorio = festivoRepositorio;
